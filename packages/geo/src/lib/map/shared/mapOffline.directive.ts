@@ -46,10 +46,14 @@ export class MapOfflineDirective implements AfterViewInit {
         layer.ol.getSource().clear();
       } else if (layer.options.sourceOptions.type === 'xyz') {
         sourceOptions = (layer.options.sourceOptions as XYZDataSourceOptions);
-      } else if (layer.options.sourceOptions.type === 'vector') {
-        sourceOptions = (layer.options.sourceOptions as FeatureDataSourceOptions);
       } else {
-        return;
+        if (this.state.connection === false) {
+          layer.ol.setMaxResolution(0);
+          return;
+        } else if (this.state.connection === true) {
+          layer.ol.setMaxResolution(Infinity);
+          return;
+        }
       }
       if (sourceOptions.pathOffline  &&
         this.state.connection === false) {
@@ -57,6 +61,12 @@ export class MapOfflineDirective implements AfterViewInit {
       } else if (sourceOptions.pathOffline &&
         this.state.connection === true) {
           layer.ol.getSource().setUrl(sourceOptions.url);
+      } else {
+        if (this.state.connection === false) {
+          layer.ol.setMaxResolution(0);
+        } else if (this.state.connection === true) {
+          layer.ol.setMaxResolution(Infinity);
+        }
       }
     });
   }
