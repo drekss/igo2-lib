@@ -11,6 +11,7 @@ import { getEntityTitle, getEntityIcon } from '@igo2/common';
 
 import { Feature } from '../shared';
 import { SearchSource } from '../../search/shared/sources/source';
+import { IgoMap } from '../../map/shared/map';
 
 @Component({
   selector: 'igo-feature-details',
@@ -20,6 +21,7 @@ import { SearchSource } from '../../search/shared/sources/source';
 })
 export class FeatureDetailsComponent {
   private state: ConnectionState;
+  private offlineButtonState: boolean;
 
   @Input()
   get source(): SearchSource {
@@ -29,6 +31,8 @@ export class FeatureDetailsComponent {
     this._source = value;
     this.cdRef.detectChanges();
   }
+
+  @Input() map: IgoMap;
 
   @Input()
   get feature(): Feature {
@@ -87,6 +91,7 @@ export class FeatureDetailsComponent {
   filterFeatureProperties(feature) {
     const allowedFieldsAndAlias = feature.meta ? feature.meta.alias : undefined;
     const properties = {};
+    const offlineButtonState = this.map.offlineButtonState;
 
     if (allowedFieldsAndAlias) {
       Object.keys(allowedFieldsAndAlias).forEach(field => {
@@ -94,6 +99,7 @@ export class FeatureDetailsComponent {
       });
       return properties;
     } else {
+      if (!offlineButtonState) {
         if (this.state.connection && feature.meta && feature.meta.excludeAttribute) {
           const excludeAttribute = feature.meta.excludeAttribute;
           excludeAttribute.forEach(attribute => {
@@ -106,6 +112,15 @@ export class FeatureDetailsComponent {
           });
         }
         return feature.properties;
+      } else {
+        if (feature.meta && feature.meta.excludeAttributeOffline) {
+          const excludeAttributeOffline = feature.meta.excludeAttributeOffline;
+          excludeAttributeOffline.forEach(attribute => {
+            delete feature.properties[attribute];
+          });
+        }
+      }
+      return feature.properties;
     }
   }
 }

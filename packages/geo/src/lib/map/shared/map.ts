@@ -34,6 +34,7 @@ import { FeatureDataSource } from '../../datasource/shared/datasources/feature-d
 export class IgoMap {
   public ol: olMap;
   public offlineButtonToggle$ = new BehaviorSubject<boolean>(false);
+  public offlineButtonState: boolean = false;
   public layers$ = new BehaviorSubject<Layer[]>([]);
   public status$: Subject<SubjectStatus>;
   public geolocation$ = new BehaviorSubject<olGeolocation>(undefined);
@@ -399,8 +400,12 @@ export class IgoMap {
           )
         ) {
           this.overlay.dataSource.ol.removeFeature(this.geolocationFeature);
+        }
+
+        if (this.bufferFeature) {
           this.buffer.dataSource.ol.removeFeature(this.bufferFeature);
         }
+
         this.geolocationFeature = new olFeature({ geometry });
         this.geolocationFeature.setId('geolocationFeature');
         this.overlay.addOlFeature(this.geolocationFeature);
@@ -476,5 +481,6 @@ export class IgoMap {
 
   onOfflineToggle(offline: boolean) {
     this.offlineButtonToggle$.next(offline);
+    this.offlineButtonState = offline;
   }
 }
