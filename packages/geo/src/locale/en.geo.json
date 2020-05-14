@@ -54,6 +54,10 @@
         "failed": {
           "text": "Failed to export",
           "title": "Failed to export features"
+        },
+        "success": {
+          "text": "Features have been exported.",
+          "title":"Successed features export"
         }
       },
       "importExportForm": {
