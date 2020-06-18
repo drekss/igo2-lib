@@ -16,6 +16,7 @@ import {
 
 import { Platform } from '@ionic/angular';
 import { File } from '@ionic-native/file/ngx';
+import { FileOpener } from '@ionic-native/file-opener/ngx';
 
 @Injectable({
   providedIn: 'root'
@@ -36,6 +37,7 @@ export class ExportIonicService {
   constructor(
       private config: ConfigService,
       private platform: Platform,
+      private fileOpener: FileOpener,
       private file: File
     ) {
     this.ogreUrl = this.config.getConfig('importExport.url');
@@ -145,7 +147,8 @@ export class ExportIonicService {
 
     if (this.platform.is('cordova')) {
         const directory = this.file.externalRootDirectory + 'Download';
-        this.file.writeFile(directory, fileName, featuresText, { replace: true });
+        this.file.writeFile(directory, fileName, featuresText, { replace: true }).then((success) =>
+        this.fileOpener.open(directory + '/' + fileName, 'text/plain'));
         observer.complete();
     } else {
         downloadContent(featuresText, 'text/plain;charset=utf-8', fileName);
@@ -213,7 +216,7 @@ export class ExportIonicService {
     if (format === 'GPX') {
       const pointOrLine = olFeatures.find(olFeature => {
         return (
-          ['Point', 'LineString'].indexOf(olFeature.getGeometry().getType()) >=
+          ['Point', 'LineString', 'MultiLineString'].indexOf(olFeature.getGeometry().getType()) >=
           0
         );
       });
