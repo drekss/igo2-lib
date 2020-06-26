@@ -13,6 +13,8 @@ export interface Context {
   description?: string;
   icon?: string;
   iconImage?: string;
+  imported?: boolean;
+  visibleBaseLayer?: string;
 }
 
 export interface ContextsList {
@@ -29,6 +31,8 @@ export interface DetailedContext extends Context {
   toolbar?: string[];
   message?: Message;
   removeLayersOnContextChange?: boolean;
+  extraFeatures?: any[];
+  catalogLayers?: any[];
 }
 
 export interface ContextMapView extends MapViewOptions {

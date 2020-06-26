@@ -1,1 +1,7 @@
-<igo-import-export [map]="map"></igo-import-export>
+<mat-radio-group [value]="importExportType$">
+        <mat-radio-button value="data" (change)="importExportTypeChange($event)">{{'igo.integration.importExportTool.importExportData' | translate}}</mat-radio-button>
+        <mat-radio-button value="context" (change)="importExportTypeChange($event)">{{'igo.integration.importExportTool.importExportContext' | translate}}</mat-radio-button>
+</mat-radio-group>
+<igo-import-export *ngIf="importExportType$ ==='data'" [map]="map"></igo-import-export>
+<igo-context-import-export *ngIf="importExportType$ ==='context'" [map]="map"></igo-context-import-export>
+

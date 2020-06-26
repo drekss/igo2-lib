@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, Input, Output, EventEmitter } from '@angular/core';
 
 import { ToolComponent } from '@igo2/common';
 import { IgoMap } from '@igo2/geo';
@@ -13,6 +13,7 @@ import { MapState } from '../../map/map.state';
 @Component({
   selector: 'igo-import-export-tool',
   templateUrl: './import-export-tool.component.html',
+  styleUrls: ['./import-export-tool.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ImportExportToolComponent {
@@ -22,8 +23,15 @@ export class ImportExportToolComponent {
    */
   get map(): IgoMap { return this.mapState.map; }
 
+  public importExportType$: string = 'data';
+  @Output() itemTypeChange = new EventEmitter<string>();
+
   constructor(
-    private mapState: MapState
+    private mapState: MapState,
   ) {}
 
+  importExportTypeChange(event) {
+    this.importExportType$ = event.value;
+    this.itemTypeChange.emit(this.importExportType$);
+  }
 }
