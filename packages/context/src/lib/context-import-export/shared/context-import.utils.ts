@@ -131,9 +131,7 @@ export function addContextToContextList(
     contextService.enhancedContexts$.next(contextService.enhancedContexts$.value);
     const rawContext = JSON.stringify(context);
     contextService.importedContext.push(rawContext);
-    contextService.mergeImportedContext(context, context.uri).subscribe(mergeRes => {
-      contextService.context$.next(mergeRes);
-    });
+    contextService.loadContext(context.uri);
 }
 
 export function getFileExtension(file: File): string {

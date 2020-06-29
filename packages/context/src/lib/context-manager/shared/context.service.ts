@@ -31,6 +31,7 @@ import {
   ContextMapView,
   ContextPermission
 } from './context.interface';
+import { nextContext } from '@angular/core/src/render3';
 
 @Injectable({
   providedIn: 'root'
@@ -228,6 +229,8 @@ export class ContextService {
     return this.http.get<DetailedContext>(url).pipe(
       flatMap(res => {
         if (!res.base) {
+          this.tools = res.tools;
+          this.toolbar = res.toolbar;
           return of(res);
         }
         const urlBase = this.getPath(`${res.base}.json`);
@@ -266,10 +269,17 @@ export class ContextService {
   }
 
   mergeImportedContext(res: DetailedContext, uri: string): Observable<DetailedContext> {
-    const urlBase = this.getPath(`${res.base}.json`);
+    let urlBase;
+    if (!res.base) {
+      urlBase = this.getPath(`${this.options.defaultContextUri}.json`);
+    } else {
+      urlBase = this.getPath(`${res.base}.json`);
+    }
     return this.http.get<DetailedContext>(urlBase).pipe(
           map((resBase: DetailedContext) => {
-            if (res.layers[0].baseLayer || res.layers[res.layers.length - 1].baseLayer) {
+            if (res.layers[0].baseLayer || res.layers[res.layers.length - 1].baseLayer || !res.base) {
+              this.tools = res.tools;
+              this.toolbar = res.toolbar;
               return res;
             } else {
               const resMerge = res;
@@ -475,7 +485,8 @@ export class ContextService {
     const context = {
       uri: name,
       title: name,
-      base: currentContext.base ? currentContext.base : '_base',
+      base: currentContext.base ? currentContext.base : undefined,
+      enableBase: currentContext.base ? true : false,
       visibleBaseLayer: currentBaseLayer,
       map: {
         view: {
@@ -495,7 +506,7 @@ export class ContextService {
       let opts;
       let layerStyle;
       currentContext.layers.forEach(contextLayer => {
-        if (layer.title === contextLayer.title) {
+        if (layer.title === contextLayer.title && !contextLayer.baseLayer) {
           layerStyle = contextLayer[`style`];
           if (contextLayer[`styleByAttribute`]) {
             layerStyle = undefined;
@@ -605,7 +616,7 @@ export class ContextService {
       }
     });
     if (imported) {
-      return this.mergeImportedContext(context, uri);
+        return this.mergeImportedContext(context, uri);
     } else {
       return this.getLocalContext(uri);
     }
