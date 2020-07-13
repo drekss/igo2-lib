@@ -10,11 +10,12 @@ import { Observer, Observable } from 'rxjs';
 import { Platform } from '@ionic/angular';
 import { File } from '@ionic-native/file/ngx';
 import { FileOpener } from '@ionic-native/file-opener/ngx';
+import { ContextExportService } from './context-export.service';
 
 @Injectable({
   providedIn: 'root'
 })
-export class ContextExportIonicService {
+export class ContextExportIonicService extends ContextExportService {
 
   constructor(
     private config: ConfigService,
@@ -22,15 +23,12 @@ export class ContextExportIonicService {
     private fileOpener: FileOpener,
     private file: File
     ) {
+      super();
   }
 
-  export(res: DetailedContext): Observable<void> {
-    return this.exportAsync(res);
-  }
-
-  exportAsync(res: DetailedContext): Observable<void> {
+  protected exportAsync(res: DetailedContext): Observable<void> {
     const doExport = (observer: Observer<void>) => {
-        const nothingToExport = this.nothingToExport(res);
+        const nothingToExport = super.nothingToExport(res);
         if (nothingToExport === true) {
             observer.error(new ExportNothingToExportError());
             return;
@@ -39,7 +37,7 @@ export class ContextExportIonicService {
         const contextJSON = JSON.stringify(res);
 
         if (this.platform.is('cordova')) {
-            const directory = this.file.externalRootDirectory + 'Download';
+            const directory = this.config.getConfig('ExportDirectory');
             this.file.writeFile(directory, `${res.uri}.json`, contextJSON, { replace: true }).then((success) =>
             this.fileOpener.open(directory + '/' + `${res.uri}.json`, 'text/plain'));
             observer.complete();
@@ -49,12 +47,5 @@ export class ContextExportIonicService {
         }
     };
     return new Observable(doExport);
-  }
-
-  private nothingToExport(res: DetailedContext): boolean {
-    if (res.map === undefined) {
-      return true;
-    }
-    return false;
   }
 }

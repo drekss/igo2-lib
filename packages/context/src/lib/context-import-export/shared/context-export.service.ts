@@ -18,7 +18,7 @@ export class ContextExportService {
     return this.exportAsync(res);
   }
 
-  exportAsync(res: DetailedContext): Observable<void> {
+  protected exportAsync(res: DetailedContext): Observable<void> {
     const doExport = (observer: Observer<void>) => {
         const nothingToExport = this.nothingToExport(res);
         if (nothingToExport === true) {
@@ -32,7 +32,7 @@ export class ContextExportService {
     return new Observable(doExport);
   }
 
-  private nothingToExport(res: DetailedContext): boolean {
+  protected nothingToExport(res: DetailedContext): boolean {
     if (res.map === undefined) {
       return true;
     }
