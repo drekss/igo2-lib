@@ -5,12 +5,12 @@ import { skip, buffer, debounceTime, filter } from 'rxjs/operators';
 
 import { RouteService } from '@igo2/core';
 import {
-  IgoMap,
   MapBrowserComponent,
   Layer,
   LayerService,
   LayerOptions
 } from '@igo2/geo';
+import type { IgoMap } from '@igo2/geo';
 
 import { ContextService } from './context.service';
 import { DetailedContext } from './context.interface';
@@ -49,10 +49,11 @@ export class LayerContextDirective implements OnInit, OnDestroy {
       this.route.options.contextKey
     ) {
       const queryParams$$ = this.route.queryParams
-        .pipe(skip(1))
         .subscribe(params => {
-          this.queryParams = params;
-          queryParams$$.unsubscribe();
+          if ( Object.keys(params).length > 0 ) {
+            this.queryParams = params;
+            queryParams$$.unsubscribe();
+          }
         });
     }
   }

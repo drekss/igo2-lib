@@ -6,16 +6,16 @@ import {
 
 import { IgoImportExportModule } from '@igo2/geo';
 import { ImportExportToolComponent } from './import-export-tool/import-export-tool.component';
+import { CommonModule } from '@angular/common';
 
 @NgModule({
-  imports: [IgoImportExportModule],
+  imports: [IgoImportExportModule, CommonModule],
   declarations: [ImportExportToolComponent],
   exports: [ImportExportToolComponent],
-  entryComponents: [ImportExportToolComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class IgoAppImportExportModule {
-  static forRoot(): ModuleWithProviders {
+  static forRoot(): ModuleWithProviders<IgoAppImportExportModule> {
     return {
       ngModule: IgoAppImportExportModule,
       providers: []

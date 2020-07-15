@@ -2,14 +2,13 @@ import { NgModule, ModuleWithProviders } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { ReactiveFormsModule } from '@angular/forms';
-import {
-  MatFormFieldModule,
-  MatInputModule,
-  MatButtonModule
-} from '@angular/material';
+import { MatButtonModule } from '@angular/material/button';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 
-import { IgoLanguageModule } from '@igo2/core';
+import { IgoLanguageModule, StorageService } from '@igo2/core';
 
+import { AuthStorageService } from './shared/storage.service';
 import { ProtectedDirective } from './shared/protected.directive';
 import { AuthInterceptor } from './shared/auth.interceptor';
 
@@ -37,7 +36,7 @@ import { AuthFacebookComponent } from './auth-form/auth-facebook.component';
   exports: [AuthFormComponent, ProtectedDirective]
 })
 export class IgoAuthModule {
-  static forRoot(): ModuleWithProviders {
+  static forRoot(): ModuleWithProviders<IgoAuthModule> {
     return {
       ngModule: IgoAuthModule,
       providers: [
@@ -45,6 +44,10 @@ export class IgoAuthModule {
           provide: HTTP_INTERCEPTORS,
           useClass: AuthInterceptor,
           multi: true
+        },
+        {
+          provide: StorageService,
+          useClass: AuthStorageService
         }
       ]
     };

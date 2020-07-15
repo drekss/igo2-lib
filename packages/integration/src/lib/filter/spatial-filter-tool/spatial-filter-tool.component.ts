@@ -1,5 +1,5 @@
 import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
-import { MatIconRegistry } from '@angular/material';
+import { MatIconRegistry } from '@angular/material/icon';
 import { Observable, forkJoin } from 'rxjs';
 import { tap } from 'rxjs/operators';
 
@@ -26,8 +26,10 @@ import { EntityStore, ToolComponent } from '@igo2/common';
 import olFormatGeoJSON from 'ol/format/GeoJSON';
 import { BehaviorSubject } from 'rxjs';
 import { MapState } from '../../map/map.state';
+import { ImportExportState } from './../../import-export/import-export.state';
 import * as olstyle from 'ol/style';
 import { MessageService, LanguageService } from '@igo2/core';
+import { ToolState } from '../../tool/tool.state';
 
 /**
  * Tool to apply spatial filter
@@ -81,7 +83,9 @@ export class SpatialFilterToolComponent {
     private layerService: LayerService,
     private mapState: MapState,
     private messageService: MessageService,
-    private languageService: LanguageService
+    private languageService: LanguageService,
+    private importExportState: ImportExportState,
+    private toolState: ToolState
   ) {}
 
   getOutputType(event: SpatialFilterType) {
@@ -95,6 +99,11 @@ export class SpatialFilterToolComponent {
     if (this.queryType) {
       this.loadFilterList();
     }
+  }
+
+  activateExportTool() {
+    this.importExportState.setSelectedTab(1);
+    this.toolState.toolbox.activateTool('importExport');
   }
 
   private loadFilterList() {
@@ -221,7 +230,10 @@ export class SpatialFilterToolComponent {
     for (const feature of features) {
       if (this.type === SpatialFilterType.Predefined) {
         for (const layer of this.map.layers) {
-          if (layer.options._internal && layer.options._internal.code === feature.properties.code) {
+          if (
+            layer.options._internal &&
+            layer.options._internal.code === feature.properties.code
+          ) {
             return;
           }
           if (layer.title.startsWith('Zone')) {
