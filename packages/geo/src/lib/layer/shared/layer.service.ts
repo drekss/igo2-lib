@@ -2,7 +2,7 @@ import { Injectable, Injector, Optional } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
-import stylefunction from 'ol-mapbox-style/stylefunction';
+import stylefunction from 'ol-mapbox-style/dist/stylefunction';
 import { AuthInterceptor } from '@igo2/auth';
 import { ObjectUtils } from '@igo2/utils';
 
@@ -143,7 +143,7 @@ export class LayerService {
 
     if (layerOptions.source instanceof ClusterDataSource) {
       const serviceStyle = this.styleService;
-      const baseStyle = layerOptions.style;
+      const baseStyle = layerOptions.clusterBaseStyle;
       layerOptions.style = feature => {
         return serviceStyle.createClusterStyle(
           feature,
@@ -162,7 +162,7 @@ export class LayerService {
       olLayer = new VectorLayer(layerOptionsOl);
     }
 
-    this.applyMapboxStyle(olLayer, layerOptionsOl);
+    this.applyMapboxStyle(olLayer, layerOptionsOl as any);
 
     return olLayer;
   }

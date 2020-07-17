@@ -6,14 +6,17 @@ import {
 
 import { CommonModule } from '@angular/common';
 
-import { MatTabsModule, MatListModule, MatIconModule } from '@angular/material';
+import { MatIconModule } from '@angular/material/icon';
+import { MatListModule } from '@angular/material/list';
+import { MatTabsModule } from '@angular/material/tabs';
 
 import { IgoLanguageModule } from '@igo2/core';
 import {
   IgoLayerModule,
   IgoMetadataModule,
   IgoDownloadModule,
-  IgoFilterModule
+  IgoFilterModule,
+  IgoImportExportModule
 } from '@igo2/geo';
 
 import { IgoContextModule } from '@igo2/context';
@@ -33,16 +36,16 @@ import { MapLegendToolComponent } from './map-legend/map-legend-tool.component';
     IgoLayerModule,
     IgoMetadataModule,
     IgoDownloadModule,
+    IgoImportExportModule,
     IgoFilterModule,
     IgoContextModule
   ],
   declarations: [MapToolComponent, MapToolsComponent, MapDetailsToolComponent, MapLegendToolComponent],
   exports: [MapToolComponent, MapToolsComponent, MapDetailsToolComponent, MapLegendToolComponent],
-  entryComponents: [MapToolComponent, MapToolsComponent, MapDetailsToolComponent, MapLegendToolComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class IgoAppMapModule {
-  static forRoot(): ModuleWithProviders {
+  static forRoot(): ModuleWithProviders<IgoAppMapModule> {
     return {
       ngModule: IgoAppMapModule,
       providers: []

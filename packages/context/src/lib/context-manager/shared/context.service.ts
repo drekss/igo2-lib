@@ -2,7 +2,14 @@ import { Injectable, Optional } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 
 import { BehaviorSubject, Observable, of } from 'rxjs';
-import { map, tap, catchError, debounceTime, flatMap } from 'rxjs/operators';
+import {
+  map,
+  tap,
+  catchError,
+  debounceTime,
+  mergeMap,
+  first
+} from 'rxjs/operators';
 
 import olPoint from 'ol/geom/Point';
 
@@ -18,7 +25,7 @@ import {
 } from '@igo2/core';
 
 import { AuthService } from '@igo2/auth';
-import { IgoMap } from '@igo2/geo';
+import type { IgoMap } from '@igo2/geo';
 
 import { TypePermission } from './context.enum';
 import {
@@ -27,7 +34,8 @@ import {
   Context,
   DetailedContext,
   ContextMapView,
-  ContextPermission
+  ContextPermission,
+  ContextProfils
 } from './context.interface';
 
 @Injectable({
@@ -46,6 +54,14 @@ export class ContextService {
   // Until the ContextService is completely refactored, this is needed
   // to track the current tools
   private tools: Tool[];
+
+  get defaultContextUri(): string {
+    return this._defaultContextUri || this.options.defaultContextUri;
+  }
+  set defaultContextUri(uri: string) {
+    this._defaultContextUri = uri;
+  }
+  private _defaultContextUri: string;
 
   constructor(
     private http: HttpClient,
@@ -69,18 +85,27 @@ export class ContextService {
     this.readParamsFromRoute();
 
     this.authService.authenticate$.subscribe(authenticated => {
-      const contexts$$ = this.contexts$.subscribe(contexts => {
-        if (contexts$$) {
-          contexts$$.unsubscribe();
+      if (authenticated && this.baseUrl) {
+        this.get().subscribe(contexts => {
           this.handleContextsChange(contexts);
-        }
-      });
-      this.loadContexts();
+        });
+      } else {
+        this.contexts$.pipe(first()).subscribe(contexts => {
+          this.handleContextsChange(contexts);
+        });
+        this.loadContexts();
+      }
     });
   }
 
-  get(): Observable<ContextsList> {
-    const url = this.baseUrl + '/contexts';
+  get(permissions?: string[], hidden?: boolean): Observable<ContextsList> {
+    let url = this.baseUrl + '/contexts';
+    if (permissions && this.authService.authenticated) {
+      url += '?permission=' + permissions.join();
+      if (hidden) {
+        url += '&hidden=true';
+      }
+    }
     return this.http.get<ContextsList>(url);
   }
 
@@ -107,9 +132,27 @@ export class ContextService {
     );
   }
 
+  getProfilByUser(): Observable<ContextProfils[]> {
+    if (this.baseUrl) {
+      const url = this.baseUrl + '/profils?';
+      return this.http.get<ContextProfils[]>(url);
+    }
+    return of([]);
+  }
+
   setDefault(id: string): Observable<any> {
     const url = this.baseUrl + '/contexts/default';
     return this.http.post(url, { defaultContextId: id });
+  }
+
+  hideContext(id: string) {
+    const url = this.baseUrl + '/contexts/' + id + '/hide';
+    return this.http.post(url, {});
+  }
+
+  showContext(id: string) {
+    const url = this.baseUrl + '/contexts/' + id + '/show';
+    return this.http.post(url, {});
   }
 
   delete(id: string): Observable<void> {
@@ -221,7 +264,7 @@ export class ContextService {
   getLocalContext(uri: string): Observable<DetailedContext> {
     const url = this.getPath(`${uri}.json`);
     return this.http.get<DetailedContext>(url).pipe(
-      flatMap(res => {
+      mergeMap(res => {
         if (!res.base) {
           return of(res);
         }
@@ -258,10 +301,10 @@ export class ContextService {
     );
   }
 
-  loadContexts() {
+  loadContexts(permissions?: string[], hidden?: boolean) {
     let request;
     if (this.baseUrl) {
-      request = this.get();
+      request = this.get(permissions, hidden);
     } else {
       request = this.getLocalContexts();
     }
@@ -275,17 +318,17 @@ export class ContextService {
       if (!direct && this.baseUrl && this.authService.authenticated) {
         this.getDefault().subscribe(
           (_context: DetailedContext) => {
-            this.options.defaultContextUri = _context.uri;
+            this.defaultContextUri = _context.uri;
             this.addContextToList(_context);
             this.setContext(_context);
           },
           () => {
             this.defaultContextId$.next(undefined);
-            this.loadContext(this.options.defaultContextUri);
+            this.loadContext(this.defaultContextUri);
           }
         );
       } else {
-        this.loadContext(this.options.defaultContextUri);
+        this.loadContext(this.defaultContextUri);
       }
     };
 
@@ -294,7 +337,7 @@ export class ContextService {
         const contextParam = params[this.route.options.contextKey as string];
         let direct = false;
         if (contextParam) {
-          this.options.defaultContextUri = contextParam;
+          this.defaultContextUri = contextParam;
           direct = true;
         }
         loadFct(direct);
@@ -310,16 +353,19 @@ export class ContextService {
       return;
     }
 
-    const contexts$$ = this.getContextByUri(uri).subscribe(
-      (_context: DetailedContext) => {
-        contexts$$.unsubscribe();
-        this.addContextToList(_context);
-        this.setContext(_context);
-      },
-      err => {
-        contexts$$.unsubscribe();
-      }
-    );
+    this.getContextByUri(uri)
+      .pipe(first())
+      .subscribe(
+        (_context: DetailedContext) => {
+          this.addContextToList(_context);
+          this.setContext(_context);
+        },
+        err => {
+          if (uri !== this.options.defaultContextUri) {
+            this.loadContext(this.options.defaultContextUri);
+          }
+        }
+      );
   }
 
   setContext(context: DetailedContext) {
@@ -352,7 +398,7 @@ export class ContextService {
     this.editedContext$.next(context);
   }
 
-  getContextFromMap(igoMap: IgoMap): DetailedContext {
+  getContextFromMap(igoMap: IgoMap, empty?: boolean): DetailedContext {
     const view = igoMap.ol.getView();
     const proj = view.getProjection().getCode();
     const center: any = new olPoint(view.getCenter()).transform(
@@ -368,16 +414,27 @@ export class ContextService {
         view: {
           center: center.getCoordinates(),
           zoom: view.getZoom(),
-          projection: proj
+          projection: proj,
+          maxZoomOnExtent: igoMap.viewController.maxZoomOnExtent
         }
       },
       layers: [],
       tools: []
     };
 
-    const layers = igoMap.layers$
-      .getValue()
-      .sort((a, b) => a.zIndex - b.zIndex);
+    let layers = [];
+    if (empty === true) {
+      layers = igoMap.layers$
+        .getValue()
+        .filter(
+          lay =>
+            lay.baseLayer === true ||
+            lay.options.id === 'searchPointerSummaryId'
+        )
+        .sort((a, b) => a.zIndex - b.zIndex);
+    } else {
+      layers = igoMap.layers$.getValue().sort((a, b) => a.zIndex - b.zIndex);
+    }
 
     let i = 0;
     for (const l of layers) {
