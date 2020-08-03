@@ -4,6 +4,7 @@ import { IgoAppAnalyticsModule } from './analytics/analytics.module';
 import { IgoAppContextModule } from './context/context.module';
 import { IgoAppCatalogModule } from './catalog/catalog.module';
 import { IgoAppDirectionsModule } from './directions/directions.module';
+import { IgoAppDrawModule } from './draw/draw.module';
 import { IgoAppWorkspaceModule } from './workspace/workspace.module';
 import { IgoAppImportExportModule } from './import-export/import-export.module';
 import { IgoAppMapModule } from './map/map.module';
@@ -21,6 +22,7 @@ import { IgoAppAboutModule } from './about/about.module';
     IgoAppContextModule,
     IgoAppCatalogModule,
     IgoAppDirectionsModule,
+    IgoAppDrawModule,
     IgoAppWorkspaceModule,
     IgoAppImportExportModule,
     IgoAppMapModule,

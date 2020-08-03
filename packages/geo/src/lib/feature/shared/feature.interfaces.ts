@@ -42,6 +42,7 @@ export interface FeatureMeta {
 export interface FeatureGeometry {
   type: GeoJsonGeometryTypes;
   coordinates: any;
+  radius?: number;
 }
 
 export interface FeatureStoreOptions extends EntityStoreOptions {

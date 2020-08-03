@@ -281,7 +281,9 @@ export class MeasurerComponent implements OnInit, OnDestroy {
   constructor(
     private languageService: LanguageService,
     private dialog: MatDialog
-  ) {}
+  ) {
+    console.log(this.store);
+  }
 
   /**
    * Add draw controls and activate one

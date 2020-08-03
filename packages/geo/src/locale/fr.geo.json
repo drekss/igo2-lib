@@ -502,6 +502,19 @@
           "modify.tooltip": "Modifier"
         }
       },
+      "draw": {
+        "Point": "Point",
+        "LineString": "Ligne",
+        "Polygon": "Polygone",
+        "Circle": "Cercle",
+        "fill": "Remplissage",
+        "stroke": "Contour",
+        "radius": "Rayon",
+        "drawing": "Dessins",
+        "styleSelect": "Selectionner le style",
+        "cancelColorPicker": "Annulé",
+        "delete": "Retirer les dessins de la carte"
+      },
       "workspace": {
         "ogcFilter.close": "Fermer",
         "ogcFilter.title": "Filtres",

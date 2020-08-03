@@ -1,6 +1,7 @@
 import * as olextent from 'ol/extent';
 import * as olproj from 'ol/proj';
 import * as olstyle from 'ol/style';
+import OlCircle from 'ol/geom/Circle';
 import OlFeature from 'ol/Feature';
 import OlGeometryLayout from 'ol/geom/GeometryLayout';
 import OlPolygon from 'ol/geom/Polygon';
@@ -45,11 +46,18 @@ export function featureToOl(
 ): OlFeature {
   getId = getId ? getId : getEntityId;
 
-  const olFormat = new OlFormatGeoJSON();
-  const olFeature = olFormat.readFeature(feature, {
-    dataProjection: feature.projection,
-    featureProjection: projectionOut
-  });
+  let olFeature: OlFeature;
+
+  if (feature.geometry.radius) {
+    const circle = new OlCircle(feature.geometry.coordinates, feature.geometry.radius);
+    olFeature = new OlFeature(circle);
+  } else {
+    const olFormat = new OlFormatGeoJSON();
+    olFeature = olFormat.readFeature(feature, {
+      dataProjection: feature.projection,
+      featureProjection: projectionOut
+    });
+  }
 
   olFeature.setId(getId(feature));
 

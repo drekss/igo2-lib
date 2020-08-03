@@ -98,6 +98,7 @@
     "jwt-decode": "^2.2.0",
     "moment": "^2.22.2",
     "ngx-cacheable": "^1.0.9",
+    "ngx-color-picker": "^9.1.0",
     "ol": "^5.3.0",
     "ol-mapbox-style": "^4.3.0",
     "proj4": "^2.5.0",
