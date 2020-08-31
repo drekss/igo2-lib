@@ -52,9 +52,9 @@ export class MapDetailsToolComponent implements OnInit {
 
   get layers$(): Observable<Layer[]> {
     return this.map.layers$.pipe(
-      map(layers =>
+      map((layers) =>
         layers.filter(
-          layer =>
+          (layer) =>
             layer.showInLayerList !== false &&
             (!this.excludeBaseLayers || !layer.baseLayer)
         )
@@ -93,7 +93,7 @@ export class MapDetailsToolComponent implements OnInit {
       this.searchSourceService
         .getSources()
         .filter(sourceCanSearch)
-        .filter(s => s.available && s.getType() === 'Layer').length > 0
+        .filter((s) => s.available && s.getType() === 'Layer').length > 0
     );
   }
 
@@ -134,8 +134,8 @@ export class MapDetailsToolComponent implements OnInit {
   }
 
   activateExport(id: string) {
-    this.importExportState.setsExportOptions({layer: id} as ExportOptions);
-    this.importExportState.setSelectedTab(1);
+    this.importExportState.setsExportOptions({ layer: [id] } as ExportOptions);
+    this.importExportState.setMode('export');
     this.toolState.toolbox.activateTool('importExport');
   }
 }

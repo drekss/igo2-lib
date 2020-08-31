@@ -14,6 +14,7 @@ import { ImportExportState } from '../import-export.state';
 @Component({
   selector: 'igo-import-export-tool',
   templateUrl: './import-export-tool.component.html',
+  styleUrls: ['./import-export-tool.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ImportExportToolComponent implements OnInit {
@@ -23,31 +24,36 @@ export class ImportExportToolComponent implements OnInit {
    */
   get map(): IgoMap { return this.mapState.map; }
 
+  public importExportType$: string = 'layer';
+
   constructor(
     private mapState: MapState,
     public importExportState: ImportExportState
   ) {}
 
   ngOnInit(): void {
-    this.selectedTab();
+    this.selectMode();
   }
 
-  private selectedTab() {
-    const userSelectedTab = this.importExportState.selectedTab$.value;
-    if (userSelectedTab !== undefined) {
-      this.importExportState.setSelectedTab(userSelectedTab);
+  private selectMode() {
+    const userSelectedMode = this.importExportState.selectedMode$.value;
+    if (userSelectedMode !== undefined) {
+      this.importExportState.setMode(userSelectedMode);
     } else {
-      this.importExportState.setSelectedTab(0);
+      this.importExportState.setMode('import');
 
     }
   }
 
-  public tabChanged(tab: number) {
-    this.importExportState.setSelectedTab(tab);
+  public modeChanged(mode: string) {
+    this.importExportState.setMode(mode);
   }
 
   public exportOptionsChange(exportOptions: ExportOptions) {
     this.importExportState.setsExportOptions(exportOptions);
   }
 
+  importExportTypeChange(event) {
+    this.importExportType$ = event.value;
+  }
 }
