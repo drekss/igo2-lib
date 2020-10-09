@@ -22,8 +22,11 @@
     (itemTypeChange)="itemType = $event"
     (thematicChange)="thematics = $event"
     (toggleSearch)="getOutputToggleSearch()"
-    (clearButtonEvent)="layers = $event"
-    (clearSearchEvent)="getOutputClearSearch()">
+    (clearButtonEvent)="clearMap()"
+    (clearSearchEvent)="getOutputClearSearch()"
+    (export)="activateExportTool()"
+    (openWorkspace)="activateWorkspace()"
+    >
   </igo-spatial-filter-item>
 </igo-panel>
 

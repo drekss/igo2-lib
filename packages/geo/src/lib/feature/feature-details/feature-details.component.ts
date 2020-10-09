@@ -2,12 +2,15 @@ import {
   Component,
   Input,
   ChangeDetectionStrategy,
-  ChangeDetectorRef
+  ChangeDetectorRef,
+  Output,
+  EventEmitter
 } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { NetworkService, ConnectionState } from '@igo2/core';
 
 import { getEntityTitle, getEntityIcon } from '@igo2/common';
+import type { Toolbox } from '@igo2/common';
 
 import { Feature } from '../shared';
 import { SearchSource } from '../../search/shared/sources/source';
@@ -34,6 +37,8 @@ export class FeatureDetailsComponent {
 
   @Input() map: IgoMap;
 
+  @Input() toolbox: Toolbox;
+
   @Input()
   get feature(): Feature {
     return this._feature;
@@ -41,10 +46,14 @@ export class FeatureDetailsComponent {
   set feature(value: Feature) {
     this._feature = value;
     this.cdRef.detectChanges();
+    this.selectFeature.emit();
   }
 
   private _feature: Feature;
   private _source: SearchSource;
+
+  @Output() routeEvent = new EventEmitter<boolean>();
+  @Output() selectFeature = new EventEmitter<boolean>();
 
   /**
    * @internal
@@ -82,6 +91,16 @@ export class FeatureDetailsComponent {
     if (typeof value === 'string') {
       return (
         value.slice(0, 8) === 'https://' || value.slice(0, 7) === 'http://'
+      );
+    } else {
+      return false;
+    }
+  }
+
+  isImg(value) {
+    if (this.isUrl(value)) {
+      return (
+        ['jpg', 'png', 'gif'].includes(value.split('.').pop().toLowerCase())
       );
     } else {
       return false;

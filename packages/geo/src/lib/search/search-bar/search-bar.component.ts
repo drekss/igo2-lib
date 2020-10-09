@@ -9,8 +9,7 @@ import {
   ViewChild,
   ElementRef
 } from '@angular/core';
-import { FloatLabelType } from '@angular/material';
-
+import { FloatLabelType, MatFormFieldAppearance } from '@angular/material/form-field';
 import { BehaviorSubject, Subscription, EMPTY, timer } from 'rxjs';
 import { debounce, distinctUntilChanged } from 'rxjs/operators';
 
@@ -72,6 +71,8 @@ export class SearchBarComponent implements OnInit, OnDestroy {
    */
   private searchType$$: Subscription;
 
+  private researches$$: Subscription[];
+
   /**
    * List of available search types
    */
@@ -125,6 +126,12 @@ export class SearchBarComponent implements OnInit, OnDestroy {
    * Whether a float label should be displayed
    */
   @Input() floatLabel: FloatLabelType = 'never';
+
+  @Input() appearance: MatFormFieldAppearance = 'legacy';
+
+  @Input() placeholder: string;
+
+  @Input() label: string;
 
   /**
    * Icons color (search and clear)
@@ -198,7 +205,7 @@ export class SearchBarComponent implements OnInit, OnDestroy {
    * Input element
    * @internal
    */
-  @ViewChild('input') input: ElementRef;
+  @ViewChild('input', { static: true }) input: ElementRef;
 
   /**
    * Whether the search bar is empty
@@ -357,6 +364,11 @@ export class SearchBarComponent implements OnInit, OnDestroy {
    * @param term Search term
    */
   private doSearch(term: string | undefined) {
+    if (this.researches$$) {
+      this.researches$$.map(research => research.unsubscribe());
+      this.researches$$ = undefined;
+    }
+
     const slug = term ? term.replace(/(#[^\s]*)/g, '').trim() : '';
     if (slug === '') {
       if (this.store !== undefined) {
@@ -365,15 +377,11 @@ export class SearchBarComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (this.store !== undefined) {
-      this.store.softClear();
-    }
-
     const researches = this.searchService.search(term, {
       forceNA: this.forceNA
     });
-    researches.map(research => {
-      research.request.subscribe((results: SearchResult[]) => {
+    this.researches$$ = researches.map(research => {
+      return research.request.subscribe((results: SearchResult[]) => {
         this.onResearchCompleted(research, results);
       });
     });
