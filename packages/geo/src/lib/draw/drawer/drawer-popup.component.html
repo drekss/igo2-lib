@@ -1,0 +1,6 @@
+<h2>{{title}}</h2>
+<p>{{message}}</p>
+<mat-form-field class="example-full-width">
+<input matInput placeholder="Label" #input>
+</mat-form-field>
+<button mat-button (click)="onOk$.next(input.value); dialog.close()">OK</button>
