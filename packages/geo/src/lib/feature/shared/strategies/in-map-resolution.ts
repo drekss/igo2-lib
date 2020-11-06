@@ -1,27 +1,26 @@
 import { unByKey } from 'ol/Observable';
-import * as olextent from 'ol/extent';
 
 import { EntityStoreStrategy } from '@igo2/common';
 
 import { FeatureStore } from '../store';
-import { FeatureStoreInMapExtentStrategyOptions, Feature } from '../feature.interfaces';
+import { FeatureStoreInMapResolutionStrategyOptions, Feature } from '../feature.interfaces';
 import { Subscription } from 'rxjs';
 import { skipWhile } from 'rxjs/operators';
 
 /**
- * This strategy maintain the store features updated while the map is moved.
- * The features's state inside the map are tagged inMapExtent = true;
+ * This strategy maintain the store features updated while the map is scrolled.
+ * The features's state inside the map's resolution are tagged inMapResolution = true;
  */
-export class FeatureStoreInMapExtentStrategy extends EntityStoreStrategy {
+export class FeatureStoreInMapResolutionStrategy extends EntityStoreStrategy {
 
   /**
    * Subscription to the store's OL source changes
    */
   private stores$$ = new Map<FeatureStore, string>();
-  private states$$: Subscription[] = [];
+  private resolution$$: Subscription[] = [];
   private empty$$: Subscription;
 
-  constructor(protected options: FeatureStoreInMapExtentStrategyOptions) {
+  constructor(protected options: FeatureStoreInMapResolutionStrategyOptions) {
     super(options);
   }
 
@@ -35,8 +34,7 @@ export class FeatureStoreInMapExtentStrategy extends EntityStoreStrategy {
       this.watchStore(store);
     }
     this.empty$$ = store.empty$
-      .pipe(skipWhile((empty) => !empty))
-      .subscribe(() => this.updateEntitiesInExtent(store));
+      .subscribe(() => this.updateEntitiesInResolution(store, store.layer.map.viewController.getResolution()));
   }
 
   /**
@@ -75,21 +73,17 @@ export class FeatureStoreInMapExtentStrategy extends EntityStoreStrategy {
       return;
     }
 
-    this.updateEntitiesInExtent(store);
-    this.states$$.push(store.layer.map.viewController.state$.subscribe(() => {
-      this.updateEntitiesInExtent(store);
+    this.updateEntitiesInResolution(store, store.layer.map.viewController.getResolution());
+    this.resolution$$.push(store.layer.map.viewController.resolution$.subscribe((res) => {
+      this.updateEntitiesInResolution(store, res);
     }));
   }
 
-  private updateEntitiesInExtent(store) {
-    if (store?.layer?.map?.viewController) {
-      store.state.updateAll({ inMapExtent: false });
-      const mapExtent = store.layer.map.viewController.getExtent();
-      const entitiesInMapExtent = store.entities$.value
-        .filter((entity: Feature) => olextent.intersects(entity.ol.getGeometry().getExtent(), mapExtent));
-      if (entitiesInMapExtent.length > 0) {
-        store.state.updateMany(entitiesInMapExtent, { inMapExtent: true }, true);
-      }
+  private updateEntitiesInResolution(store, mapResolution: number) {
+    if (mapResolution > store.layer.minResolution && mapResolution < store.layer.maxResolution) {
+      store.state.updateAll({ inMapResolution: true });
+    } else {
+      store.state.updateAll({ inMapResolution: false });
     }
   }
 
@@ -113,7 +107,7 @@ export class FeatureStoreInMapExtentStrategy extends EntityStoreStrategy {
       unByKey(entries[1]);
     });
     this.stores$$.clear();
-    this.states$$.map(state => state.unsubscribe());
+    this.resolution$$.map(state => state.unsubscribe());
     if (this.empty$$) { this.empty$$.unsubscribe(); }
   }
 }
