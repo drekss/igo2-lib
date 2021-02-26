@@ -13,8 +13,10 @@
       font-weight: bold;
     }
 
-    h1 {
-      font-size: mat-font-size($typography, display-1);
-      font-family:  Roboto, "Helvetica Neue", sans-serif;
+    igo-draw-popup-component {
+      h1 {
+        font-size: mat-font-size($typography, display-1);
+        font-family:  Roboto, "Helvetica Neue", sans-serif;
+      }
     }
  }
